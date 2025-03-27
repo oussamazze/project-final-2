@@ -1,0 +1,2 @@
+/api/* https://backends-10.onrender.com/api/:splat  200
+/* /index.html 200
