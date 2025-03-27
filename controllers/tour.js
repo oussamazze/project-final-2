@@ -17,6 +17,42 @@ export const createTour = async (req, res) => {
     res.status(404).json({ message: "Something went wrong" });
   }
 };
+export const deleteComment = async (req, res) => {
+  const { id, commentId } = req.params;
+
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ message: "User is not authenticated" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ message: `No tour exists with id: ${id}` });
+    }
+
+    const tour = await TourModal.findById(id);
+    if (!tour) {
+      return res.status(404).json({ message: "Tour not found" });
+    }
+
+    const commentIndex = tour.comments.findIndex((c) => c._id.toString() === commentId);
+    if (commentIndex === -1) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    if (tour.comments[commentIndex].userId !== req.userId) {
+      return res.status(403).json({ message: "You can only delete your own comments" });
+    }
+
+    tour.comments.splice(commentIndex, 1);
+    const updatedTour = await TourModal.findByIdAndUpdate(id, tour, { new: true });
+
+    res.status(200).json(updatedTour);
+  } catch (error) {
+    console.error("Erreur lors de la suppression du commentaire :", error);
+    res.status(500).json({ message: "Something went wrong", error });
+  }
+};
+
 
 export const getTours = async (req, res) => {
   const { page } = req.query;
